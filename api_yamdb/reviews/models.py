@@ -38,6 +38,3 @@ class Review(models.Model):
         )]
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
-
-
-

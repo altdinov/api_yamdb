@@ -6,6 +6,7 @@ from reviews.models import Review
 
 User = get_user_model()
 
+
 class Comment(models.Model):
     title = models.PositiveIntegerField(verbose_name='Произведение')
     author = models.ForeignKey(
