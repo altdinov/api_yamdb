@@ -6,14 +6,25 @@ from django.db import models
 User = get_user_model()
 
 
-class Review(models.Model):
-    """Модель Ревью"""
+class BasePost(models.Model):
+    """Базовая абстрактная модель для наследования в ревью и комментариях"""
     title = models.PositiveIntegerField(
         verbose_name='Произведение',
     )
     author = models.ForeignKey(
         to=User, on_delete=models.CASCADE, verbose_name='Автор'
     )
+    text = models.TextField(verbose_name='Текст')
+    pub_date = models.DateTimeField(
+        verbose_name='Опубликовано', auto_now_add=True
+    )
+    edited_date = models.DateTimeField(verbose_name='Изменено', auto_now=True)
+
+    class Meta:
+        abstract = True
+
+class Review(BasePost):
+    """Модель Ревью"""
     score = models.PositiveSmallIntegerField(
         verbose_name='Оценка',
         validators=[
@@ -25,11 +36,7 @@ class Review(models.Model):
             )
         ]
     )
-    text = models.TextField(verbose_name='Текст')
-    pub_date = models.DateTimeField(
-        verbose_name='Опубликовано', auto_now_add=True
-    )
-    edited_date = models.DateTimeField(verbose_name='Изменено', auto_now=True)
+
 
     class Meta:
         constraints = [models.UniqueConstraint(
@@ -41,23 +48,15 @@ class Review(models.Model):
         default_related_name = 'reviews'
 
 
-class Comment(models.Model):
+class Comment(BasePost):
     """Модель комментариев"""
-    title = models.PositiveIntegerField(verbose_name='Произведение')
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name='Автор'
-    )
+
     review = models.ForeignKey(
         to=Review,
         on_delete=models.CASCADE,
         verbose_name='Отзыв',
         related_name='comments'
     )
-    text = models.TextField(verbose_name='Текст комментария')
-    pub_date = models.DateTimeField(
-        verbose_name='Опубликовано', auto_now_add=True
-    )
-    edited_date = models.DateTimeField(verbose_name='Изменено', auto_now=True)
 
     class Meta:
         verbose_name = 'комментарий'
