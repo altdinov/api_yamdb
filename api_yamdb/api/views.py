@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ModelViewSet
 
@@ -5,16 +7,18 @@ from api.serializers import ReviewSerializer, CommentSerializer
 from reviews.models import Review
 
 
-class ReviewViewSet(ModelViewSet):
-    """Эндпоинт ревью"""
-    serializer_class = ReviewSerializer
-    # TODO: Заглушка до добавления пермишенов
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-
+class GetTitleMixin():
     def get_title(self):
         # TODO: добавить модель произведений
         # title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         return self.kwargs.get('title_id')
+
+
+class ReviewViewSet(ModelViewSet, GetTitleMixin):
+    """Эндпоинт ревью"""
+    serializer_class = ReviewSerializer
+    # TODO: Заглушка до добавления пермишенов
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         """Кверисет по id произведения"""
@@ -27,29 +31,30 @@ class ReviewViewSet(ModelViewSet):
         serializer.save(
             author=self.request.user, title=title
         )
+        self.get_serializer_context()
 
-class CommentViewSet(ModelViewSet):
+class CommentViewSet(ModelViewSet, GetTitleMixin):
     """Эндпоинт комментариев"""
     # TODO: Заглушка пока нужных пермишенов нет
     permission_classes = (IsAuthenticatedOrReadOnly, )
     serializer_class = CommentSerializer
 
+    def get_review(self):
+        # TODO: Попробовать скормить кверисет от рилейтед тайтла
+        return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+
     def get_queryset(self):
         """Получаем комментарии по id произведения и id ревью"""
-        # TODO: добавить модель произведений
-        # title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        # TODO: Попробовать скормить кверисет от рилейтед тайтла
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        title = self.get_title()
+        review = self.get_review()
         return review.comments.all()
 
     def perform_create(self, serializer):
         """Создание ревью"""
-        # TODO: добавить модель произведений
-        # title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        # TODO: Попробовать скормить кверисет от рилейтед тайтла
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        title = self.get_title()
+        review = self.get_review()
         serializer.save(
             author=self.request.user,
-            title=self.kwargs.get('title_id'),
+            title=title,
             review=review,
         )

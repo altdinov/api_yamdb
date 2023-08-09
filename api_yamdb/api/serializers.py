@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework import validators
 
 from reviews.models import Review, Comment
+from .utils import CurrentDefaultTitle
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -9,7 +10,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(
         default=serializers.CurrentUserDefault()
     )
-    title = serializers.HiddenField(default=None)
+    title = serializers.HiddenField(default=CurrentDefaultTitle())
 
 
     class Meta:
@@ -22,14 +23,6 @@ class ReviewSerializer(serializers.ModelSerializer):
             fields=('title', 'author'),
             message='Вы уже оценили данное произведение',
         ),)
-
-    def to_internal_value(self, data):
-        """Добавляем значение title_id из url"""
-        # TODO: Заменить на произведение
-        data['title'] = self.context.get(
-            'request'
-        ).parser_context.get('kwargs').get('title_id')
-        return data
 
     def validate(self, attrs):
         """validate_score почему-то не вызывается поэтому проводим валидацию
