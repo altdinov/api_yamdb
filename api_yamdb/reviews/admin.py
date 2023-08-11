@@ -28,6 +28,7 @@ class TitleAdmin(admin.ModelAdmin):
         'name',
         'category',
         'year',
+        'rating'
     )
     search_fields = ('name',)
     list_filter = ('category',)

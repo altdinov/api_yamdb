@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from .validators import validate_year
 
@@ -34,6 +35,19 @@ class Title(models.Model):
     year = models.IntegerField(
         validators=[validate_year],
         verbose_name='Год'
+    )
+    rating = models.IntegerField(
+        validators=[
+            MaxValueValidator(
+                limit_value=10, message='Рейтинг не может быть больше 10 баллов'
+            ),
+            MinValueValidator(
+                limit_value=1, message='Рейтинг не может быть меньше 1го балла'
+            )
+        ],
+        null=True,
+        blank=True,
+        verbose_name='Рейтинг'
     )
     description = models.TextField(
         null=True,
