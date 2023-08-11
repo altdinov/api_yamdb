@@ -21,8 +21,6 @@ EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 # Application definition
 
 INSTALLED_APPS = [
-    "api.apps.ApiConfig",
-    "users.apps.UsersConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -31,6 +29,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "users.apps.UsersConfig",
     "reviews.apps.ReviewsConfig",
     "api.apps.ApiConfig",
 ]
