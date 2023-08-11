@@ -1,22 +1,18 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 
 
 from .models import User
 
 
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-
+class UserAdmin(UserAdmin):
     list_display = (
-        'pk',
-        'username',
-        'email',
-        'first_name',
-        'last_name',
-        'bio',
-        'role'
+        "username", "email", "first_name", "last_name", "bio", "role"
     )
-    empty_value_display = 'значение отсутствует'
-    list_editable = ('role',)
-    list_filter = ('username',)
-    search_fields = ('username', 'role')
+    empty_value_display = "значение отсутствует"
+    list_editable = ("role", "bio")
+    list_filter = ("username",)
+    search_fields = ("username", "role")
+
+
+admin.site.register(User, UserAdmin)
