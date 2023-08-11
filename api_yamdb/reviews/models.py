@@ -1,9 +1,21 @@
 from django.db import models
 from django.utils import timezone
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.exceptions import ValidationError
 
 
-class Category(models.Model):
+def validate_year(value):
+    if value > timezone.now().year:
+        raise ValidationError(
+            'год выпуска не может быть больше текущего'
+        )
+    if value < 0:
+        raise ValidationError(
+            'год выпуска не может быть отрицательным'
+        )
+
+
+class ModelForCategoryGenre(models.Model):
+
     name = models.CharField(max_length=256, verbose_name='Имя')
     slug = models.SlugField(max_length=50, unique=True)
 
@@ -11,16 +23,17 @@ class Category(models.Model):
         return self.name
 
     class Meta:
+        abstract = True
+
+
+class Category(ModelForCategoryGenre):
+
+    class Meta:
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
 
 
-class Genre(models.Model):
-    name = models.CharField(max_length=256, verbose_name='Имя')
-    slug = models.SlugField(max_length=50, unique=True)
-
-    def __str__(self):
-        return self.name
+class Genre(ModelForCategoryGenre):
 
     class Meta:
         verbose_name = 'жанр'
@@ -30,16 +43,7 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=256, verbose_name='Имя')
     year = models.IntegerField(
-        validators=[
-            MaxValueValidator(
-                limit_value=timezone.now().year,
-                message='год выпуска не может быть больше текущего'
-            ),
-            MinValueValidator(
-                limit_value=0,
-                message='год выпуска не может отрицательным'
-            )
-        ],
+        validators=[validate_year],
         verbose_name='Год'
     )
     description = models.TextField(
