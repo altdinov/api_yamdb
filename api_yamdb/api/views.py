@@ -2,13 +2,20 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ModelViewSet
+from rest_framework import filters, mixins, viewsets
+from rest_framework.pagination import LimitOffsetPagination
 
 from api.serializers import ReviewSerializer, CommentSerializer
-from reviews.models import Review
+from reviews.models import Review, Category, Genre
+from .serializers import (
+    CategorySerializer,
+    GenreSerializer,
+)
 
 
 class GetTitleMixin():
     def get_title(self):
+        """Получение произведения по ID"""
         # TODO: добавить модель произведений
         # title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         return self.kwargs.get('title_id')
@@ -40,6 +47,7 @@ class CommentViewSet(ModelViewSet, GetTitleMixin):
     serializer_class = CommentSerializer
 
     def get_review(self):
+        """Получение ревью по ID"""
         # TODO: Попробовать скормить кверисет от рилейтед тайтла
         return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
 
@@ -58,3 +66,17 @@ class CommentViewSet(ModelViewSet, GetTitleMixin):
             title=title,
             review=review,
         )
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_field = 'slug'
+    #permission_classes = (OwnerOrReadOnly,)
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    lookup_field = 'slug'
+    #permission_classes = (OwnerOrReadOnly,)

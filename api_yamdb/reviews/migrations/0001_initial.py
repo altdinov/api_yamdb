@@ -53,4 +53,31 @@ class Migration(migrations.Migration):
             model_name='review',
             constraint=models.UniqueConstraint(fields=('title', 'author'), name='Only_one_review_from_author_for_title'),
         ),
+        migrations.CreateModel(
+            name='Category',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=256)),
+                ('slug', models.SlugField(unique=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Genre',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=256)),
+                ('slug', models.SlugField(unique=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Title',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=256)),
+                ('year', models.IntegerField(validators=[django.core.validators.MaxValueValidator(limit_value=2023, message='год выпуска не может быть больше текущего'), django.core.validators.MinValueValidator(limit_value=0, message='год выпуска не может отрицательным')])),
+                ('description', models.TextField(blank=True, null=True)),
+                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='titles', to='reviews.category')),
+                ('genre', models.ManyToManyField(blank=True, null=True, to='reviews.Genre')),
+            ],
+        ),
     ]
