@@ -1,11 +1,7 @@
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
-from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Category, Genre, Title
-from reviews.validators import validate_year
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -46,12 +42,25 @@ class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
 
-    def validate(self, attrs):
-        validate_year(attrs['year'])
-        return attrs
+    class Meta:
+        fields = (
+            'id', 'name', 'year', 'rating',
+            'description', 'genre', 'category'
+        )
+        model = Title
 
-    def create(self, validated_data):
-        print(validated_data)
+
+class StringListField(serializers.ListField):
+    child = serializers.CharField()
+
+
+class TitleSerializerForWrite(serializers.ModelSerializer):
+    name = serializers.CharField(
+        max_length=256,
+    )
+    year = serializers.IntegerField()
+    category = serializers.CharField()
+    genre = StringListField(write_only=True)
 
     class Meta:
         fields = (
@@ -59,4 +68,3 @@ class TitleSerializer(serializers.ModelSerializer):
             'description', 'genre', 'category'
         )
         model = Title
-        lookup_field = 'slug'

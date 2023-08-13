@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Genre, Title
+from .models import Category, Genre, GenreTitle, Title
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -23,6 +23,11 @@ class GenreAdmin(admin.ModelAdmin):
     list_display_links = ('name',)
 
 
+class GenreInline(admin.TabularInline):
+    model = GenreTitle
+    extra = 1
+
+
 class TitleAdmin(admin.ModelAdmin):
     list_display = (
         'name',
@@ -33,7 +38,7 @@ class TitleAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_filter = ('category',)
     list_display_links = ('name',)
-    filter_horizontal = ('genre',)
+    inlines = (GenreInline,)
 
 
 admin.site.register(Category, CategoryAdmin)

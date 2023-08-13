@@ -1,5 +1,5 @@
-from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
 from .validators import validate_year
 
@@ -39,10 +39,12 @@ class Title(models.Model):
     rating = models.IntegerField(
         validators=[
             MaxValueValidator(
-                limit_value=10, message='Рейтинг не может быть больше 10 баллов'
+                limit_value=10,
+                message='Рейтинг не может быть больше 10 баллов'
             ),
             MinValueValidator(
-                limit_value=1, message='Рейтинг не может быть меньше 1го балла'
+                limit_value=1,
+                message='Рейтинг не может быть меньше 1го балла'
             )
         ],
         null=True,
@@ -56,6 +58,7 @@ class Title(models.Model):
     )
     genre = models.ManyToManyField(
         Genre,
+        through='GenreTitle',
         verbose_name='Жанр'
     )
     category = models.ForeignKey(
@@ -72,3 +75,11 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'произведение'
         verbose_name_plural = 'Произведения'
+
+
+class GenreTitle(models.Model):
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+    title = models.ForeignKey(Title, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.genre} {self.title}'

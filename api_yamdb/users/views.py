@@ -5,13 +5,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
-
 from .models import User
 from .permissions import IsSuperUserOrIsAdmin
 from .serializers import (
     UserCreateSerializer,
     UserRecieveTokenSerializer,
-    UserSerializer,
+    UserSerializer
 )
 from .utils import send_confirmation_code
 
