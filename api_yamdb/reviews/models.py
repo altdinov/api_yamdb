@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.conf import settings
 
 from .validators import validate_year
 
@@ -9,8 +10,10 @@ User = get_user_model()
 
 class BasePost(models.Model):
     """Базовая абстрактная модель для наследования в ревью и комментариях"""
-    title = models.PositiveIntegerField(
+    title = models.ForeignKey(
+        to='Title',
         verbose_name='Произведение',
+        on_delete=models.CASCADE,
     )
     author = models.ForeignKey(
         to=User, on_delete=models.CASCADE, verbose_name='Автор'
@@ -21,7 +24,11 @@ class BasePost(models.Model):
     )
     edited_date = models.DateTimeField(verbose_name='Изменено', auto_now=True)
 
+    class Meta:
+        abstract = True
 
+    def __str__(self):
+        return self.text[:settings.CUT_STR_LONGER]
 
 class ModelForCategoryGenre(models.Model):
 
@@ -48,7 +55,6 @@ class Review(BasePost):
         ]
     )
 
-
     class Meta:
         constraints = [models.UniqueConstraint(
             fields=['title', 'author'],
@@ -73,6 +79,7 @@ class Comment(BasePost):
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
         default_related_name = 'comments'
+
 
 class Category(ModelForCategoryGenre):
 

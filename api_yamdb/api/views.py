@@ -6,26 +6,28 @@ from rest_framework import filters, mixins, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
 from api.serializers import ReviewSerializer, CommentSerializer
-from reviews.models import Review, Category, Genre
+from reviews.models import Review, Category, Genre, Title
 from .serializers import (
     CategorySerializer,
     GenreSerializer,
 )
+from .permissions import IsAdminOrModeratorOrOwnerOrReadOnly
 
 
 class GetTitleMixin():
     def get_title(self):
         """Получение произведения по ID"""
-        # TODO: добавить модель произведений
-        # title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        return self.kwargs.get('title_id')
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        return title
 
 
 class ReviewViewSet(ModelViewSet, GetTitleMixin):
     """Эндпоинт ревью"""
     serializer_class = ReviewSerializer
     # TODO: Заглушка до добавления пермишенов
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (
+        IsAdminOrModeratorOrOwnerOrReadOnly,
+    )
 
     def get_queryset(self):
         """Кверисет по id произведения"""
@@ -43,24 +45,27 @@ class ReviewViewSet(ModelViewSet, GetTitleMixin):
 class CommentViewSet(ModelViewSet, GetTitleMixin):
     """Эндпоинт комментариев"""
     # TODO: Заглушка пока нужных пермишенов нет
-    permission_classes = (IsAuthenticatedOrReadOnly, )
+    permission_classes = (
+        IsAdminOrModeratorOrOwnerOrReadOnly,
+        IsAuthenticatedOrReadOnly
+    )
     serializer_class = CommentSerializer
 
-    def get_review(self):
+    def get_review(self, title):
         """Получение ревью по ID"""
         # TODO: Попробовать скормить кверисет от рилейтед тайтла
-        return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        return get_object_or_404(title.reviews, pk=self.kwargs.get('review_id'))
 
     def get_queryset(self):
         """Получаем комментарии по id произведения и id ревью"""
         title = self.get_title()
-        review = self.get_review()
+        review = self.get_review(title)
         return review.comments.all()
 
     def perform_create(self, serializer):
         """Создание ревью"""
         title = self.get_title()
-        review = self.get_review()
+        review = self.get_review(title)
         serializer.save(
             author=self.request.user,
             title=title,

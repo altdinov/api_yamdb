@@ -130,3 +130,5 @@ SIMPLE_JWT = {
 }
 
 EMAIl_ADRES = "delfin0710@mail.ru"
+
+CUT_STR_LONGER = 30
