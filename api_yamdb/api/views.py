@@ -54,28 +54,22 @@ class TitleViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        genres_list_slug = serializer.validated_data.pop('genre')
+        genres_slug_list = serializer.validated_data.pop('genre')
         category = get_object_or_404(
             Category, slug=serializer.validated_data.pop('category')
         )
         serializer.save(category=category)
 
-        genre_list = []
         title = get_object_or_404(Title, id=serializer.data['id'])
-        for genre_slug in genres_list_slug:
+        for genre_slug in genres_slug_list:
             genre = get_object_or_404(Genre, slug=genre_slug)
             GenreTitle.objects.create(
                 title=title, genre=genre
             )
-            genre_dict = {'name': genre.name, 'slug': genre.slug}
-            genre_list.append(genre_dict)
+        self.serializer_class = TitleSerializer
+        serializer = self.serializer_class(title)
 
-        data_for_response = serializer.data
-        data_for_response.pop('category')
-        data_for_response['genre'] = genre_list
-        data_for_response['category'] = {
-            'name': category.name, 'slug': category.slug}
-        return Response(data_for_response, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def partial_update(self, request, pk=None):
         self.serializer_class = TitleSerializerForWrite
@@ -85,18 +79,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
 
-        if 'genre' in serializer.validated_data:
-            genres_list_slug = serializer.validated_data.pop('genre')
-            genre_list = []
-            GenreTitle.objects.filter(title_id=pk).delete()
-            for genre_slug in genres_list_slug:
-                genre = get_object_or_404(Genre, slug=genre_slug)
-                GenreTitle.objects.create(
-                    title=title, genre=genre
-                )
-                genre_dict = {'name': genre.name, 'slug': genre.slug}
-                genre_list.append(genre_dict)
-
         if 'category' in serializer.validated_data:
             category = get_object_or_404(
                 Category, slug=serializer.validated_data.pop('category')
@@ -105,7 +87,15 @@ class TitleViewSet(viewsets.ModelViewSet):
         else:
             serializer.save()
 
+        if 'genre' in serializer.validated_data:
+            genres_slug_list = serializer.validated_data.pop('genre')
+            GenreTitle.objects.filter(title_id=pk).delete()
+            for genre_slug in genres_slug_list:
+                genre = get_object_or_404(Genre, slug=genre_slug)
+                GenreTitle.objects.create(
+                    title=title, genre=genre
+                )
+
         self.serializer_class = TitleSerializer
-        title = get_object_or_404(Title, id=pk)
         serializer = self.serializer_class(title)
         return Response(serializer.data, status=status.HTTP_200_OK)
