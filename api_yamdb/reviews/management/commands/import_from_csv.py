@@ -2,7 +2,7 @@ import csv
 
 from django.core.management.base import BaseCommand
 
-from reviews.models import Category, Genre, GenreTitle, Title
+from reviews.models import Category, Genre, GenreTitle, Title, Review, Comment
 from users.models import User
 
 
@@ -40,8 +40,19 @@ class Command(BaseCommand):
                 "users.csv" in csv_file_name
                 and User.objects.all().first() is not None
             ):
-                return "Objects GenreTitle already exist in DB. Import aborted"
+                return "Objects Users already exist in DB. Import aborted"
+            if (
+                "review.csv" in csv_file_name
+                and Review.objects.all().first() is not None
+            ):
+                return "Objects Reviews already exist in DB. Import aborted"
+            if (
+                "comments.csv" in csv_file_name
+                and Comment.objects.all().first() is not None
+            ):
+                return "Objects Comments already exist in DB. Import aborted"
 
+            print(csv_file_name)
             for row in reader:
                 if "category.csv" in csv_file_name:
                     Category.objects.create(name=row["name"], slug=row["slug"])
@@ -66,6 +77,21 @@ class Command(BaseCommand):
                         first_name=row["first_name"],
                         last_name=row["last_name"],
                     )
+                if "review.csv" in csv_file_name:
+                    Review.objects.create(
+                        title_id=row["title_id"],
+                        text=row["text"],
+                        author_id=row["author"],
+                        score=row["score"],
+                        pub_date=row["pub_date"]
+                    )
+                if "comments.csv" in csv_file_name:
+                    Comment.objects.create(
+                        review_id=row["review_id"],
+                        text=row["text"],
+                        author_id=row["author"],
+                        pub_date=row["pub_date"],
+                    )
 
             if "category.csv" in csv_file_name:
                 self.stdout.write("Import category.csv complited")
@@ -77,3 +103,7 @@ class Command(BaseCommand):
                 self.stdout.write("Import genre_title.csv complited")
             if "users.csv" in csv_file_name:
                 self.stdout.write("Import users.csv complited")
+            if "review.csv" in csv_file_name:
+                self.stdout.write("Import review.csv complited")
+            if "comments.csv" in csv_file_name:
+                self.stdout.write("Import comments.csv complited")
