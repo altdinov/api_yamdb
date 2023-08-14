@@ -1,18 +1,93 @@
 from django.shortcuts import get_object_or_404
+from django.db.models import Avg
+
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.viewsets import ModelViewSet
+from rest_framework import filters, mixins, viewsets, status
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, status, viewsets
 from rest_framework.response import Response
 
-from reviews.models import Category, Genre, GenreTitle, Title
-
+from reviews.models import Category, Genre, GenreTitle, Title, Review
 from .filters import TitleFilter
-from .permissions import AdminOrReadOnly
+from .permissions import AdminOrReadOnly, IsAdminOrModeratorOrOwnerOrReadOnly
 from .serializers import (
     CategorySerializer,
     GenreSerializer,
     TitleSerializer,
-    TitleSerializerForWrite
+    TitleSerializerForWrite,
+    ReviewSerializer,
+    CommentSerializer,
 )
+
+
+class GetTitleMixin():
+    def _get_title(self):
+        """Получение произведения по ID"""
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        return title
+
+
+class ReviewViewSet(ModelViewSet, GetTitleMixin):
+    """Эндпоинт ревью"""
+    serializer_class = ReviewSerializer
+    permission_classes = (
+        IsAdminOrModeratorOrOwnerOrReadOnly,
+        IsAuthenticatedOrReadOnly,
+    )
+
+    def _update_rating(self, title):
+        title.rating = round(
+            title.reviews.aggregate(Avg('score'))['score__avg'], 0
+        )
+        title.save()
+
+    def get_queryset(self):
+        """Кверисет по id произведения"""
+        title = self._get_title()
+        return Review.objects.filter(title=title)
+
+    def perform_create(self, serializer):
+        """Создание ревью"""
+        title = self._get_title()
+        serializer.save(
+            author=self.request.user, title=title
+        )
+        self._update_rating(title)
+
+    def perform_update(self, serializer):
+        super().perform_update(serializer)
+        title = self._get_title()
+        self._update_rating(title)
+
+
+class CommentViewSet(ModelViewSet, GetTitleMixin):
+    """Эндпоинт комментариев"""
+    permission_classes = (
+        IsAdminOrModeratorOrOwnerOrReadOnly,
+        IsAuthenticatedOrReadOnly
+    )
+    serializer_class = CommentSerializer
+
+    def _get_review(self, title):
+        """Получение ревью по ID"""
+        return get_object_or_404(
+            title.reviews, pk=self.kwargs.get('review_id')
+        )
+
+    def get_queryset(self):
+        """Получаем комментарии по id произведения и id ревью"""
+        title = self._get_title()
+        review = self._get_review(title)
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        """Создание комментария"""
+        title = self._get_title()
+        review = self._get_review(title)
+        serializer.save(
+            author=self.request.user,
+            review=review,
+        )
 
 
 class CategoryViewSet(mixins.CreateModelMixin,
