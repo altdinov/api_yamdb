@@ -4,5 +4,5 @@ class CurrentDefaultTitle:
 
     def __call__(self, serializer_field):
         view = serializer_field.context.get('view')
-        title = view.get_title()
+        title = view._get_title()
         return title

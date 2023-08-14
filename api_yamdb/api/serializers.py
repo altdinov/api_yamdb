@@ -72,3 +72,39 @@ class GenreSerializer(serializers.ModelSerializer):
         exclude = ('id',)
         model = Genre
         lookup_field = 'slug'
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(
+        max_length=256,
+    )
+    year = serializers.IntegerField()
+    category = CategorySerializer()
+    genre = GenreSerializer(many=True)
+
+    class Meta:
+        fields = (
+            'id', 'name', 'year', 'rating',
+            'description', 'genre', 'category'
+        )
+        model = Title
+
+
+class StringListField(serializers.ListField):
+    child = serializers.CharField()
+
+
+class TitleSerializerForWrite(serializers.ModelSerializer):
+    name = serializers.CharField(
+        max_length=256,
+    )
+    year = serializers.IntegerField()
+    category = serializers.CharField()
+    genre = StringListField(write_only=True)
+
+    class Meta:
+        fields = (
+            'id', 'name', 'year', 'rating',
+            'description', 'genre', 'category'
+        )
+        model = Title

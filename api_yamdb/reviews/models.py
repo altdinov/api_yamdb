@@ -63,6 +63,7 @@ class Review(BasePost):
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
         default_related_name = 'reviews'
+        ordering = ('pub_date',)
 
 
 class Comment(BasePost):
@@ -79,6 +80,7 @@ class Comment(BasePost):
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
         default_related_name = 'comments'
+        ordering = ('pub_date',)
 
 
 class Category(ModelForCategoryGenre):
@@ -101,6 +103,21 @@ class Title(models.Model):
         validators=[validate_year],
         verbose_name='Год'
     )
+    rating = models.IntegerField(
+        validators=[
+            MaxValueValidator(
+                limit_value=10,
+                message='Рейтинг не может быть больше 10 баллов'
+            ),
+            MinValueValidator(
+                limit_value=1,
+                message='Рейтинг не может быть меньше 1го балла'
+            )
+        ],
+        null=True,
+        blank=True,
+        verbose_name='Рейтинг'
+    )
     description = models.TextField(
         null=True,
         blank=True,
@@ -108,6 +125,7 @@ class Title(models.Model):
     )
     genre = models.ManyToManyField(
         Genre,
+        through='GenreTitle',
         verbose_name='Жанр'
     )
     category = models.ForeignKey(
@@ -124,3 +142,11 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'произведение'
         verbose_name_plural = 'Произведения'
+
+
+class GenreTitle(models.Model):
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+    title = models.ForeignKey(Title, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.genre} {self.title}'
