@@ -15,7 +15,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for csv_file_name in options["csv_file"]:
             reader = csv.DictReader(
-                open(csv_file_name, encoding="utf-8"), delimiter=",", quotechar='"'
+                open(csv_file_name, encoding="utf-8"),
+                delimiter=",",
+                quotechar='"'
             )
 
             if (
@@ -57,11 +59,11 @@ class Command(BaseCommand):
             for row in reader:
                 if "category.csv" in csv_file_name:
                     Category.objects.create(
-                        id=row["id"],name=row["name"], slug=row["slug"]
+                        id=row["id"], name=row["name"], slug=row["slug"]
                     )
                 if "genre.csv" in csv_file_name:
                     Genre.objects.create(
-                        id=row["id"],name=row["name"], slug=row["slug"]
+                        id=row["id"], name=row["name"], slug=row["slug"]
                     )
                 if "titles.csv" in csv_file_name:
                     Title.objects.create(
