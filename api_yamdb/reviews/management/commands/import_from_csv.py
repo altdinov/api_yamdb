@@ -20,42 +20,6 @@ class Command(BaseCommand):
                 quotechar='"'
             )
 
-            if (
-                "category.csv" in csv_file_name
-                and Category.objects.all().first() is not None
-            ):
-                return "Objects Category already exist in DB. Import aborted"
-            if (
-                "genre.csv" in csv_file_name
-                and Genre.objects.all().first() is not None
-            ):
-                return "Objects Genre already exist in DB. Import aborted"
-            if (
-                "titles.csv" in csv_file_name
-                and Title.objects.all().first() is not None
-            ):
-                return "Objects Title already exist in DB. Import aborted"
-            if (
-                "genre_title.csv" in csv_file_name
-                and GenreTitle.objects.all().first() is not None
-            ):
-                return "Objects GenreTitle already exist in DB. Import aborted"
-            if (
-                "users.csv" in csv_file_name
-                and User.objects.all().first() is not None
-            ):
-                return "Objects Users already exist in DB. Import aborted"
-            if (
-                "review.csv" in csv_file_name
-                and Review.objects.all().first() is not None
-            ):
-                return "Objects Reviews already exist in DB. Import aborted"
-            if (
-                "comments.csv" in csv_file_name
-                and Comment.objects.all().first() is not None
-            ):
-                return "Objects Comments already exist in DB. Import aborted"
-
             for row in reader:
                 if "category.csv" in csv_file_name:
                     Category.objects.create(
@@ -105,18 +69,3 @@ class Command(BaseCommand):
                         author_id=row["author"],
                         pub_date=row["pub_date"],
                     )
-
-            if "category.csv" in csv_file_name:
-                self.stdout.write("Import category.csv complited")
-            if "genre.csv" in csv_file_name:
-                self.stdout.write("Import genry.csv complited")
-            if "titles.csv" in csv_file_name and row.get("name"):
-                self.stdout.write("Import title.csv complited")
-            if "genre_title.csv" in csv_file_name:
-                self.stdout.write("Import genre_title.csv complited")
-            if "users.csv" in csv_file_name:
-                self.stdout.write("Import users.csv complited")
-            if "review.csv" in csv_file_name:
-                self.stdout.write("Import review.csv complited")
-            if "comments.csv" in csv_file_name:
-                self.stdout.write("Import comments.csv complited")
