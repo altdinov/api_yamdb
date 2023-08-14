@@ -30,6 +30,7 @@ class BasePost(models.Model):
     def __str__(self):
         return self.text[:settings.CUT_STR_LONGER]
 
+
 class ModelForCategoryGenre(models.Model):
 
     name = models.CharField(max_length=256, verbose_name='Имя')
@@ -40,6 +41,7 @@ class ModelForCategoryGenre(models.Model):
 
     class Meta:
         abstract = True
+
 
 class Review(BasePost):
     """Модель Ревью"""

@@ -41,7 +41,6 @@ class ReviewViewSet(ModelViewSet, GetTitleMixin):
         )
         title.save()
 
-
     def get_queryset(self):
         """Кверисет по id произведения"""
         title = self._get_title()
@@ -60,6 +59,7 @@ class ReviewViewSet(ModelViewSet, GetTitleMixin):
         title = self._get_title()
         self._update_rating(title)
 
+
 class CommentViewSet(ModelViewSet, GetTitleMixin):
     """Эндпоинт комментариев"""
     permission_classes = (
@@ -70,7 +70,9 @@ class CommentViewSet(ModelViewSet, GetTitleMixin):
 
     def _get_review(self, title):
         """Получение ревью по ID"""
-        return get_object_or_404(title.reviews, pk=self.kwargs.get('review_id'))
+        return get_object_or_404(
+            title.reviews, pk=self.kwargs.get('review_id')
+        )
 
     def get_queryset(self):
         """Получаем комментарии по id произведения и id ревью"""
@@ -87,7 +89,6 @@ class CommentViewSet(ModelViewSet, GetTitleMixin):
             title=title,
             review=review,
         )
-
 
 
 class CategoryViewSet(mixins.CreateModelMixin,

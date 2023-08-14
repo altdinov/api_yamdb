@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from rest_framework import validators
-from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueValidator
 
 from reviews.models import Review, Comment, Category, Genre, Title
@@ -13,7 +12,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault()
     )
     title = serializers.HiddenField(default=CurrentDefaultTitle())
-
 
     class Meta:
         model = Review
