@@ -86,7 +86,6 @@ class CommentViewSet(ModelViewSet, GetTitleMixin):
         review = self._get_review(title)
         serializer.save(
             author=self.request.user,
-            title=title,
             review=review,
         )
 

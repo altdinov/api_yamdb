@@ -10,11 +10,6 @@ User = get_user_model()
 
 class BasePost(models.Model):
     """Базовая абстрактная модель для наследования в ревью и комментариях"""
-    title = models.ForeignKey(
-        to='Title',
-        verbose_name='Произведение',
-        on_delete=models.CASCADE,
-    )
     author = models.ForeignKey(
         to=User, on_delete=models.CASCADE, verbose_name='Автор'
     )
@@ -45,6 +40,11 @@ class ModelForCategoryGenre(models.Model):
 
 class Review(BasePost):
     """Модель Ревью"""
+    title = models.ForeignKey(
+        to='Title',
+        verbose_name='Произведение',
+        on_delete=models.CASCADE,
+    )
     score = models.PositiveSmallIntegerField(
         verbose_name='Оценка',
         validators=[
