@@ -3,15 +3,18 @@ from rest_framework import serializers
 from .models import User
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
+class BaseUser(serializers.ModelSerializer):
+
+    def validate_username(self, data):
+        if self.initial_data.get('username') == 'me':
+            raise serializers.ValidationError("Использовать имя me запрещено")
+        return data
+
+
+class UserCreateSerializer(BaseUser):
     class Meta:
         model = User
         fields = ("username", "email")
-
-    def validate(self, data):
-        if data.get("username") == "me":
-            raise serializers.ValidationError("Использовать имя me запрещено")
-        return data
 
 
 class UserRecieveTokenSerializer(serializers.Serializer):
@@ -21,16 +24,9 @@ class UserRecieveTokenSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField(max_length=150, required=True)
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(BaseUser):
     class Meta:
         model = User
         fields = (
             "username", "email", "first_name", "last_name", "bio", "role"
         )
-
-    def validate_username(self, username):
-        if username in "me":
-            raise serializers.ValidationError(
-                "Запрещено использовать me для имени"
-            )
-        return username
