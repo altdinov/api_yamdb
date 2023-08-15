@@ -17,7 +17,7 @@ from .serializers import (
     GenreSerializer,
     ReviewSerializer,
     TitleSerializer,
-    TitleSerializerForWrite
+    TitleSerializerForWrite,
 )
 
 
