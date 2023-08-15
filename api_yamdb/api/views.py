@@ -1,22 +1,23 @@
-from django.shortcuts import get_object_or_404
 from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.viewsets import ModelViewSet
-from rest_framework import filters, mixins, viewsets, status
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, status, viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 
-from reviews.models import Category, Genre, GenreTitle, Title, Review
+from reviews.models import Category, Genre, GenreTitle, Review, Title
+
 from .filters import TitleFilter
 from .permissions import AdminOrReadOnly, IsAdminOrModeratorOrOwnerOrReadOnly
 from .serializers import (
     CategorySerializer,
-    GenreSerializer,
-    TitleSerializer,
-    TitleSerializerForWrite,
-    ReviewSerializer,
     CommentSerializer,
+    GenreSerializer,
+    ReviewSerializer,
+    TitleSerializer,
+    TitleSerializerForWrite
 )
 
 
