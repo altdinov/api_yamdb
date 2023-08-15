@@ -13,23 +13,23 @@ from .views import (
 
 app_name = 'api'
 
-router = routers.DefaultRouter()
-router.register(
+router_v1 = routers.DefaultRouter()
+router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,
     basename='review'
 )
-router.register(
+router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentViewSet,
     basename='comments'
 )
-router.register("users", UserViewSet, basename="users")
-router.register("categories", CategoryViewSet, basename="categories")
-router.register("genres", GenreViewSet, basename="genres")
-router.register("titles", TitleViewSet, basename="titles")
+router_v1.register("users", UserViewSet, basename="users")
+router_v1.register("categories", CategoryViewSet, basename="categories")
+router_v1.register("genres", GenreViewSet, basename="genres")
+router_v1.register("titles", TitleViewSet, basename="titles")
 
-auth_urls = [
+auth_urls_v1 = [
     path(
         "signup/", UserCreateViewSet.as_view({"post": "create"}), name="signup"
     ),
@@ -40,6 +40,6 @@ auth_urls = [
 ]
 
 urlpatterns = [
-    path("", include(router.urls)),
-    path("auth/", include(auth_urls)),
+    path("", include(router_v1.urls)),
+    path("auth/", include(auth_urls_v1)),
 ]
