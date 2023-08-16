@@ -2,9 +2,8 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, status, viewsets
+from rest_framework import filters, mixins, viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from reviews.models import Category, Genre, Review, Title
@@ -35,7 +34,6 @@ class ReviewViewSet(ModelViewSet, GetTitleMixin):
         IsAdminOrModeratorOrOwnerOrReadOnly,
         IsAuthenticatedOrReadOnly,
     )
-
 
     def get_queryset(self):
         """Кверисет по id произведения"""
