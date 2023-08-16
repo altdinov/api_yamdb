@@ -7,7 +7,3 @@ def validate_year(value):
         raise ValidationError(
             'год выпуска не может быть больше текущего'
         )
-    if value < 0:
-        raise ValidationError(
-            'год выпуска не может быть отрицательным'
-        )

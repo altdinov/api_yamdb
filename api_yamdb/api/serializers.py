@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from rest_framework import validators
-from rest_framework.validators import UniqueValidator
 
 from reviews.models import Review, Comment, Category, Genre, Title
 from .utils import CurrentDefaultTitle
@@ -43,14 +42,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    name = serializers.CharField(
-        max_length=256,
-    )
-    slug = serializers.SlugField(
-        max_length=50,
-        validators=[UniqueValidator(queryset=Category.objects.all())]
-    )
-
+    """Сериализатор категорий"""
     class Meta:
         exclude = ('id',)
         model = Category
@@ -58,14 +50,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(
-        max_length=256,
-    )
-    slug = serializers.SlugField(
-        max_length=50,
-        validators=[UniqueValidator(queryset=Genre.objects.all())]
-    )
-
+    """Сериализатор жанров"""
     class Meta:
         exclude = ('id',)
         model = Genre
@@ -73,19 +58,19 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(
-        max_length=256,
-    )
-    year = serializers.IntegerField()
+    """Сериализатор произведений для операций чтения"""
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
+    rating = serializers.SerializerMethodField(
+        method_name='rating_calculation'
+    )
 
     class Meta:
-        fields = (
-            'id', 'name', 'year', 'rating',
-            'description', 'genre', 'category'
-        )
+        fields = '__all__'
         model = Title
+
+    def rating_calculation(self, obj):
+        return None
 
 
 class StringListField(serializers.ListField):
@@ -93,16 +78,17 @@ class StringListField(serializers.ListField):
 
 
 class TitleSerializerForWrite(serializers.ModelSerializer):
-    name = serializers.CharField(
-        max_length=256,
+    """Сериализатор произведений для операций записи"""
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
     )
-    year = serializers.IntegerField()
-    category = serializers.CharField()
-    genre = StringListField(write_only=True)
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        many=True,
+        queryset=Genre.objects.all()
+    )
 
     class Meta:
-        fields = (
-            'id', 'name', 'year', 'rating',
-            'description', 'genre', 'category'
-        )
+        fields = '__all__'
         model = Title
