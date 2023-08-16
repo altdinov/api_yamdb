@@ -1,21 +1,22 @@
-from django.shortcuts import get_object_or_404
 from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import filters, mixins, viewsets
-from django_filters.rest_framework import DjangoFilterBackend
 
-from reviews.models import Category, Genre, Title, Review
+from reviews.models import Category, Genre, Review, Title
+
 from .filters import TitleFilter
 from .permissions import AdminOrReadOnly, IsAdminOrModeratorOrOwnerOrReadOnly
 from .serializers import (
     CategorySerializer,
+    CommentSerializer,
     GenreSerializer,
+    ReviewSerializer,
     TitleSerializer,
     TitleSerializerForWrite,
-    ReviewSerializer,
-    CommentSerializer,
 )
 
 
@@ -34,16 +35,10 @@ class ReviewViewSet(ModelViewSet, GetTitleMixin):
         IsAuthenticatedOrReadOnly,
     )
 
-    def _update_rating(self, title):
-        title.rating = round(
-            title.reviews.aggregate(Avg('score'))['score__avg'], 0
-        )
-        title.save()
-
     def get_queryset(self):
         """Кверисет по id произведения"""
         title = self._get_title()
-        return Review.objects.filter(title=title)
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         """Создание ревью"""
@@ -51,12 +46,6 @@ class ReviewViewSet(ModelViewSet, GetTitleMixin):
         serializer.save(
             author=self.request.user, title=title
         )
-        self._update_rating(title)
-
-    def perform_update(self, serializer):
-        super().perform_update(serializer)
-        title = self._get_title()
-        self._update_rating(title)
 
 
 class CommentViewSet(ModelViewSet, GetTitleMixin):
@@ -67,22 +56,20 @@ class CommentViewSet(ModelViewSet, GetTitleMixin):
     )
     serializer_class = CommentSerializer
 
-    def _get_review(self, title):
+    def _get_review(self):
         """Получение ревью по ID"""
         return get_object_or_404(
-            title.reviews, pk=self.kwargs.get('review_id')
+            Review, pk=self.kwargs.get('review_id')
         )
 
     def get_queryset(self):
         """Получаем комментарии по id произведения и id ревью"""
-        title = self._get_title()
-        review = self._get_review(title)
+        review = self._get_review()
         return review.comments.all()
 
     def perform_create(self, serializer):
         """Создание комментария"""
-        title = self._get_title()
-        review = self._get_review(title)
+        review = self._get_review()
         serializer.save(
             author=self.request.user,
             review=review,
@@ -126,3 +113,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.action in ('create', 'partial_update'):
             return TitleSerializerForWrite
         return TitleSerializer
+
+    def get_queryset(self):
+        return Title.objects.annotate(rating=Avg('reviews__score'))
