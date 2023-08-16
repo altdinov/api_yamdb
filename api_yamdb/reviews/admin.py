@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Genre, Title, Review, Comment, GenreTitle
+from .models import Category, Comment, Genre, GenreTitle, Review, Title
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -33,7 +33,6 @@ class TitleAdmin(admin.ModelAdmin):
         'name',
         'category',
         'year',
-        'rating'
     )
     search_fields = ('name',)
     list_filter = ('category',)

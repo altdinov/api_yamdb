@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from rest_framework import validators
-from rest_framework.validators import UniqueValidator
 
-from reviews.models import Review, Comment, Category, Genre, Title
+from reviews.models import Category, Comment, Genre, Review, Title
+
 from .utils import CurrentDefaultTitle
 
 
@@ -16,41 +16,27 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         exclude = ('edited_date',)
-        read_only_fields = ('pub_date', 'title')
+        read_only_fields = ('title',)
         validators = (validators.UniqueTogetherValidator(
             queryset=Review.objects.all(),
             fields=('title', 'author'),
             message='Вы уже оценили данное произведение',
         ),)
 
-    def validate_score(self, value):
-        """Проверяем чтобы оценка была в допустимом диапазоне"""
-        if not (1 <= value <= 10):
-            raise serializers.ValidationError(
-                detail='Оценка должна быть от 1 до 10'
-            )
-        return value
-
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор комментариев"""
-    author = serializers.StringRelatedField()
+    author = serializers.SlugRelatedField(
+        slug_field='username', read_only=True
+    )
 
     class Meta:
         model = Comment
         exclude = ('edited_date', 'review')
-        read_only_fields = ('pub_date',)
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    name = serializers.CharField(
-        max_length=256,
-    )
-    slug = serializers.SlugField(
-        max_length=50,
-        validators=[UniqueValidator(queryset=Category.objects.all())]
-    )
-
+    """Сериализатор категорий"""
     class Meta:
         exclude = ('id',)
         model = Category
@@ -58,14 +44,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(
-        max_length=256,
-    )
-    slug = serializers.SlugField(
-        max_length=50,
-        validators=[UniqueValidator(queryset=Genre.objects.all())]
-    )
-
+    """Сериализатор жанров"""
     class Meta:
         exclude = ('id',)
         model = Genre
@@ -73,36 +52,28 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(
-        max_length=256,
-    )
-    year = serializers.IntegerField()
+    """Сериализатор произведений для операций чтения"""
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
+    rating = serializers.IntegerField()
 
     class Meta:
-        fields = (
-            'id', 'name', 'year', 'rating',
-            'description', 'genre', 'category'
-        )
+        fields = '__all__'
         model = Title
 
 
-class StringListField(serializers.ListField):
-    child = serializers.CharField()
-
-
 class TitleSerializerForWrite(serializers.ModelSerializer):
-    name = serializers.CharField(
-        max_length=256,
+    """Сериализатор произведений для операций записи"""
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
     )
-    year = serializers.IntegerField()
-    category = serializers.CharField()
-    genre = StringListField(write_only=True)
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        many=True,
+        queryset=Genre.objects.all()
+    )
 
     class Meta:
-        fields = (
-            'id', 'name', 'year', 'rating',
-            'description', 'genre', 'category'
-        )
+        fields = '__all__'
         model = Title
