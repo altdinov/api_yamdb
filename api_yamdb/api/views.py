@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from reviews.models import Category, Genre, GenreTitle, Review, Title
+from reviews.models import Category, Genre, Review, Title
 
 from .filters import TitleFilter
 from .permissions import AdminOrReadOnly, IsAdminOrModeratorOrOwnerOrReadOnly
@@ -119,59 +119,12 @@ class GenreViewSet(mixins.CreateModelMixin,
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filterset_class = TitleFilter
     permission_classes = (AdminOrReadOnly,)
     ordering = ('id',)
 
-    def create(self, request, *args, **kwargs):
-        self.serializer_class = TitleSerializerForWrite
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        genres_slug_list = serializer.validated_data.pop('genre')
-        category = get_object_or_404(
-            Category, slug=serializer.validated_data.pop('category')
-        )
-        serializer.save(category=category)
-
-        title = get_object_or_404(Title, id=serializer.data['id'])
-        for genre_slug in genres_slug_list:
-            genre = get_object_or_404(Genre, slug=genre_slug)
-            GenreTitle.objects.create(
-                title=title, genre=genre
-            )
-        self.serializer_class = TitleSerializer
-        serializer = self.serializer_class(title)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def partial_update(self, request, pk=None):
-        self.serializer_class = TitleSerializerForWrite
-        title = get_object_or_404(Title, id=pk)
-        serializer = self.serializer_class(
-            title, data=request.data, partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-
-        if 'category' in serializer.validated_data:
-            category = get_object_or_404(
-                Category, slug=serializer.validated_data.pop('category')
-            )
-            serializer.save(category=category)
-        else:
-            serializer.save()
-
-        if 'genre' in serializer.validated_data:
-            genres_slug_list = serializer.validated_data.pop('genre')
-            GenreTitle.objects.filter(title_id=pk).delete()
-            for genre_slug in genres_slug_list:
-                genre = get_object_or_404(Genre, slug=genre_slug)
-                GenreTitle.objects.create(
-                    title=title, genre=genre
-                )
-
-        self.serializer_class = TitleSerializer
-        serializer = self.serializer_class(title)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_serializer_class(self):
+        if self.action in ('create', 'partial_update'):
+            return TitleSerializerForWrite
+        return TitleSerializer
