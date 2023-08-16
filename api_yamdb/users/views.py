@@ -1,7 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
-
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -29,15 +28,15 @@ class UserCreateViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         ):
             user = User.objects.get(username=request.data.get("username"))
             serializer = UserCreateSerializer(user, data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            username = request.data.get("username")
-            user = User.objects.get(username=username)
-            confirmation_code = default_token_generator.make_token(user)
-            send_confirmation_code(
-                email=user.email, confirmation_code=confirmation_code
-            )
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        username = request.data.get("username")
+        user = User.objects.get(username=username)
+        confirmation_code = default_token_generator.make_token(user)
+        send_confirmation_code(
+            email=user.email, confirmation_code=confirmation_code
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserReceiveTokenViewSet(mixins.CreateModelMixin,
@@ -60,14 +59,24 @@ class UserReceiveTokenViewSet(mixins.CreateModelMixin,
         return Response(message, status=status.HTTP_200_OK)
 
 
-class UserViewSet(ModelViewSet):
+class UserViewSet(mixins.ListModelMixin,
+                  mixins.CreateModelMixin,
+                  mixins.UpdateModelMixin,
+                  mixins.DestroyModelMixin,
+                  mixins.RetrieveModelMixin,
+                  viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsSuperUserOrIsAdmin,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ("username",)
     lookup_field = "username"
-    http_method_names = ["get", "patch", "delete", "post"]
+
+    def update(self, *args, **kwargs):
+        raise MethodNotAllowed("POST", detail="Use PATCH")
+
+    def partial_update(self, *args, **kwargs):
+        return super().update(*args, **kwargs, partial=True)
 
     @action(
         detail=False,
