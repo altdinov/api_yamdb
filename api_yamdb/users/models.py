@@ -2,14 +2,16 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 
+from api_yamdb.settings import FORBIDDEN_CHAR
+
 
 class User(AbstractUser):
     """Кастомный класс User."""
 
-    user = "user"
-    moderator = "moderator"
-    admin = "admin"
-    ROLES = [(user, "user"), (admin, "admin"), (moderator, "moderator")]
+    USER = "user"
+    MODERATOR = "moderator"
+    ADMIN = "admin"
+    ROLES = [(USER, "user"), (ADMIN, "admin"), (MODERATOR, "moderator")]
 
     username = models.CharField(
         max_length=150,
@@ -17,7 +19,7 @@ class User(AbstractUser):
         unique=True,
         validators=[
             RegexValidator(
-                regex=r"^[\w.@+-]+$",
+                regex=FORBIDDEN_CHAR,
                 message=("Имя пользователя содержит недопустимый символ"),
             )
         ],
@@ -33,7 +35,7 @@ class User(AbstractUser):
     )
     bio = models.TextField(verbose_name="Биография", blank=True)
     role = models.CharField(
-        max_length=20, verbose_name="Роль", choices=ROLES, default=user
+        max_length=20, verbose_name="Роль", choices=ROLES, default=USER
     )
     password = models.CharField(max_length=250)
 
@@ -47,12 +49,12 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.role == self.admin or self.is_superuser or self.is_staff
+        return self.role == self.ADMIN or self.is_superuser or self.is_staff
 
     @property
     def is_moderator(self):
-        return self.role == self.moderator
+        return self.role == self.MODERATOR
 
     @property
     def is_user(self):
-        return self.role == self.user
+        return self.role == self.USER
