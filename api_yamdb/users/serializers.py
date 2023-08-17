@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import User
+from api_yamdb.settings import FORBIDDEN_CHAR
 
 
 class BaseUser(serializers.ModelSerializer):
@@ -19,7 +20,7 @@ class UserCreateSerializer(BaseUser):
 
 class UserRecieveTokenSerializer(serializers.Serializer):
     username = serializers.RegexField(
-        regex=r"^[\w.@+-]+$", max_length=150, required=True
+        regex=FORBIDDEN_CHAR, max_length=150, required=True
     )
     confirmation_code = serializers.CharField(max_length=150, required=True)
 
